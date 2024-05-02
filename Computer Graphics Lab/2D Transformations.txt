@@ -1,0 +1,123 @@
+#include <GL/glut.h>
+#include <iostream>
+#include <cmath>
+
+float points[4][2] = { {-0.5, -0.5}, {0.5, -0.5}, {0.5, 0.5}, {-0.5, 0.5} };
+
+void scale(float sx, float sy) {
+    for (int i = 0; i < 4; ++i) {
+        points[i][0] *= sx;
+        points[i][1] *= sy;
+    }
+}
+
+void rotate(float angle) {
+    float radians = angle * (3.14159 / 180.0);
+    for (int i = 0; i < 4; ++i) {
+        points[i][0] = points[i][0] * cos(radians) - points[i][1] * sin(radians);
+        points[i][1] = points[i][0] * sin(radians) + points[i][1] * cos(radians);
+    }
+}
+
+void reflect(char axis) {
+    if (axis == 'x') {
+        for (int i = 0; i < 4; ++i) {
+            points[i][1] *= -1;
+        }
+    }
+    else if (axis == 'y') {
+        for (int i = 0; i < 4; ++i) {
+            points[i][0] *= -1;
+        }
+    }
+}
+
+void shear(float shear_factor_x, float shear_factor_y) {
+    for (int i = 0; i < 4; ++i) {
+        points[i][0] += shear_factor_x * points[i][1];
+        points[i][1] += shear_factor_y * points[i][0];
+    }
+}
+
+void translate(float tx,float ty)
+{
+        for(int i=0;i<4;i++)
+        {
+            points[i][0]+=tx;
+            points[i][1]+=ty;
+        }
+}
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_POLYGON);
+    for (int i = 0; i < 4; ++i) {
+        glVertex2fv(points[i]);
+    }
+    glEnd();
+    glFlush();
+}
+
+
+void init() {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+}
+
+void processMenu(int option) {
+    float sx, sy, angle, shear_factor_x, shear_factor_y,translate_x,translate_y;
+    char axis;
+    switch (option) {
+    case 1:
+        std::cout << "Enter scaling factors for x and y: ";
+        std::cin >> sx >> sy;
+        scale(sx, sy);
+        break;
+    case 2:
+        std::cout << "Enter angle of rotation: ";
+        std::cin >> angle;
+        rotate(angle);
+        break;
+    case 3:
+        std::cout << "Enter axis of reflection (x or y): ";
+        std::cin >> axis;
+        reflect(axis);
+        break;
+    case 4:
+        std::cout << "Enter shear factors for x and y: ";
+        std::cin >> shear_factor_x >> shear_factor_y;
+        shear(shear_factor_x, shear_factor_y);
+        break;
+    case 5:
+        std::cout << "Enter translate factors for x and y: ";
+        std::cin >> translate_x >> translate_y;
+        translate(translate_x, translate_y);
+        break;
+    case 6:
+        std::cout << "Exiting...";
+        exit(0);
+    }
+    glutPostRedisplay();
+}
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(1000, 1000);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow("2D Transformations");
+
+    glutCreateMenu(processMenu);
+    glutAddMenuEntry("Scale", 1);
+    glutAddMenuEntry("Rotate", 2);
+    glutAddMenuEntry("Reflect", 3);
+    glutAddMenuEntry("Shear", 4);
+    glutAddMenuEntry("Translate", 5);
+    glutAddMenuEntry("Exit", 6);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+
+    glutDisplayFunc(display);
+    init();
+    glutMainLoop();
+
+    return 0;
+}

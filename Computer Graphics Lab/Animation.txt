@@ -1,0 +1,105 @@
+#include <GL/glut.h>
+#include <cstdlib>
+#include <ctime>
+
+// Define parameters
+const int numBalls = 10;
+float boxWidth = 1.6f;
+float boxHeight = 1.2f;
+float ballRadius = 0.05f;
+
+struct Ball {
+    float x;
+    float y;
+    float vx;
+    float vy;
+};
+
+Ball balls[numBalls];
+
+// Function to initialize ball positions and velocities
+void initializeBalls() {
+    srand(time(NULL));
+    for (int i = 0; i < numBalls; ++i) {
+        balls[i].x = -boxWidth / 2 + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / boxWidth));
+        balls[i].y = -boxHeight / 2 + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / boxHeight));
+        balls[i].vx = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 0.01f - 0.05f; // Random velocity in range [-0.005, 0.005]
+        balls[i].vy = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 0.01f - 0.05f;
+    }
+}
+
+// Function to initialize OpenGL
+void init() {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-boxWidth / 2, boxWidth / 2, -boxHeight / 2, boxHeight / 2);
+
+    initializeBalls();
+}
+
+// Function to draw the box
+void drawBox() {
+    glColor3f(1.0f, 1.0f, 1.0f); // White color
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(-boxWidth / 2, -boxHeight / 2);
+    glVertex2f(-boxWidth / 2, boxHeight / 2);
+    glVertex2f(boxWidth / 2, boxHeight / 2);
+    glVertex2f(boxWidth / 2, -boxHeight / 2);
+    glEnd();
+}
+
+// Function to draw a ball
+void drawBall(float x, float y) {
+    glColor3f(1.0f, 0.0f, 0.0f); // Red color
+    glPushMatrix();
+    glTranslatef(x, y, 0.0f);
+    glutSolidSphere(ballRadius, 20, 20);
+    glPopMatrix();
+}
+
+// Function to display the scene
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    drawBox();
+    for (int i = 0; i < numBalls; ++i) {
+        drawBall(balls[i].x, balls[i].y);
+    }
+
+    glFlush();
+}
+
+// Function to update animation
+void update(int value) {
+    // Update ball positions
+    for (int i = 0; i < numBalls; ++i) {
+        balls[i].x += balls[i].vx;
+        balls[i].y += balls[i].vy;
+
+        // Check for collisions with walls
+        if (balls[i].x + ballRadius > boxWidth / 2 || balls[i].x - ballRadius < -boxWidth / 2) {
+            balls[i].vx = -balls[i].vx;
+        }
+        if (balls[i].y + ballRadius > boxHeight / 2 || balls[i].y - ballRadius < -boxHeight / 2) {
+            balls[i].vy = -balls[i].vy;
+        }
+    }
+
+    glutPostRedisplay();
+    glutTimerFunc(16, update, 0);
+}
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(800, 600);
+    glutCreateWindow("Bouncing Balls Animation");
+    init();
+    glutDisplayFunc(display);
+    glutTimerFunc(16, update, 0);
+    glutMainLoop();
+    return 0;
+}
